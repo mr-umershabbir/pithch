@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   }
 
   const { idea, tone } = req.body
-  const GEMINI_KEY = "AIzaSyBivOGrfNvS6uc2-ovY6Nw1PXTpnS5_-3s"  // 👈 apni API key lagao
+  const GEMINI_KEY = "AIzaSyAVue_oUhOSOEQ3xqus5gBfR0yzfjX1ayM"
 
   try {
     const prompt = `
@@ -25,28 +25,40 @@ export default async function handler(req, res) {
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
       {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }]
+          contents: [{ role: "user", parts: [{ text: prompt }] }]
         })
       }
     )
 
     const result = await response.json()
 
-    // ---- FIX START ----
-    let text =
-      result?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || ''
+    // 🧩 Debug log
+    console.log("🔍 Gemini raw result:", JSON.stringify(result, null, 2))
 
-    // Agar Gemini ne JSON nahi diya, to JSON banana
-    if (!text.startsWith('{')) {
+    // Gemini kabhi empty candidates deta hai:
+    if (!result?.candidates?.length) {
+      return res.status(200).json({
+        name: "PitchCraft",
+        tagline: "No response from Gemini",
+        pitch: "AI did not return any text. Check API key or quota.",
+        audience: "Developers",
+        landingCopy: "Error: Empty response"
+      })
+    }
+
+    let text = result?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || ""
+
+    // agar response empty ho
+    if (!text) {
       text = JSON.stringify({
-        name: 'PitchCraft Idea',
-        tagline: 'AI pitch generated text',
-        pitch: text,
-        audience: 'Students',
-        landingCopy: 'Could not parse Gemini output fully.'
+        name: "PitchCraft",
+        tagline: "Empty Response",
+        pitch: "Gemini returned no text output.",
+        audience: "Students",
+        landingCopy: "Try again or check API key."
       })
     }
 
@@ -54,13 +66,16 @@ export default async function handler(req, res) {
     try {
       parsed = JSON.parse(text)
     } catch (err) {
-      parsed = { name: 'PitchCraft', tagline: 'Parse Error', pitch: text }
+      parsed = {
+        name: "PitchCraft",
+        tagline: "Parse Error",
+        pitch: text || "No text returned"
+      }
     }
-    // ---- FIX END ----
 
     res.status(200).json(parsed)
   } catch (error) {
-    console.error('Gemini Error:', error)
+    console.error("❌ Gemini Error:", error)
     res.status(500).json({ error: error.message })
   }
 }
