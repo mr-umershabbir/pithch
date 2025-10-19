@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     }
     `;
 
-    const GEMINI_KEY = "AIzaSyAVue_oUhOSOEQ3xqus5gBfR0yzfjX1ayM";
+    const GEMINI_KEY = "AIzaSyBivOGrfNvS6uc2-ovY6Nw1PXTpnS5_-3s";
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
