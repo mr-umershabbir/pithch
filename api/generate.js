@@ -60,6 +60,11 @@ module.exports = {
         });
       }
 
+        // 👇  add these 2 lines
+      console.log("🔍 Gemini Raw Response ↓↓↓");
+      console.dir(result, { depth: null });
+      console.log("────────────────────────────");
+
       const text = result.candidates[0].content.parts[0].text?.trim() || "";
 
       if (!text) {

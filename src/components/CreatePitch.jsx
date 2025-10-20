@@ -44,6 +44,7 @@ export default function CreatePitch({ user }) {
 
       setNote("Pitch generated and saved...");
       setIdea("");
+      console.log("🧠 AI Response (from backend):", data);
     } catch (err) {
       console.error("❌ Error:", err);
       setNote(
