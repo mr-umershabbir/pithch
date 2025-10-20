@@ -1,3 +1,8 @@
+import dotenv from "dotenv";
+dotenv.config();
+
+const GEMINI_KEY = process.env.GEMINI_API_KEY;
+
 const fetch = require("node-fetch");
 
 module.exports = {
