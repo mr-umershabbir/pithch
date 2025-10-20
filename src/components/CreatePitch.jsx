@@ -17,7 +17,7 @@ export default function CreatePitch({ user }) {
 
     try {
       // ✅ make sure correct backend URL
-      const res = await fetch("http://localhost:3008/generate", {
+      const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idea, tone }),
