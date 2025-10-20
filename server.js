@@ -3,7 +3,7 @@ const cors = require("cors");
 const handler = require("./api/generate.js");
 
 const app = express();
-const port = process.env.PORT || 3008;
+const port = process.env.PORT || 5050;
 
 app.use(cors());
 app.use(express.json());
