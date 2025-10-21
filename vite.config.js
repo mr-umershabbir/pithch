@@ -6,10 +6,10 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      "/api/generate": {
-        target: "http://localhost:5050",
+      "/api": {
+        target: "http://localhost:5060",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ""),
+        secure: false,
       },
     },
   },

@@ -1,98 +1,76 @@
+const dotenv = require("dotenv");
+dotenv.config();
+
 const fetch = require("node-fetch");
 
+// POST /generate handler — expects body { idea, tone }
 module.exports = {
   default: async function handler(req, res) {
     if (req.method !== "POST") {
       return res.status(405).json({ error: "Method not allowed" });
     }
 
-    try {
-      const { idea, tone } = req.body;
-      const GEMINI_KEY = "AIzaSyDs6KV8ESJnprc5FWVdQpugNZubiAIPx4Y";
+    const GEMINI_KEY = process.env.GEMINI_API_KEY || "";
+    if (!GEMINI_KEY) {
+      console.error("❌ GEMINI_API_KEY not set in environment");
+      return res.status(500).json({ error: "Server missing Gemini API key." });
+    }
 
-      const prompt = `
-      Tum ek AI ho jo startup pitches likhta hai.
-      Idea: ${idea}
-      Tone: ${tone}
-      Output JSON format me do:
-      {
-        "name": "",
-        "tagline": "",
-        "pitch": "",
-        "audience": "",
-        "landingCopy": ""
-      }
-      `;
+    try {
+      const { idea = "", tone = "Professional" } = req.body || {};
+
+      const prompt = `Tum ek AI ho jo startup pitches likhta hai.\nIdea: ${idea}\nTone: ${tone}\nOutput JSON format me do:\n{\n  "name": "",\n  "tagline": "",\n  "pitch": "",\n  "audience": "",\n  "landingCopy": ""\n}`;
 
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  {
-                    text: prompt,
-                  },
-                ],
-              },
-            ],
+            contents: [{ parts: [{ text: prompt }] }],
           }),
         }
       );
 
       if (!response.ok) {
+        const errText = await response.text().catch(() => "");
+        console.error("Gemini API non-OK", response.status, errText);
         throw new Error("Failed to get response from Gemini API");
       }
 
       const result = await response.json();
       console.log("🔍 Gemini raw result:", JSON.stringify(result, null, 2));
 
-      if (!result?.candidates?.length) {
-        return res.status(200).json({
-          name: "PitchCraft",
-          tagline: "No response from Gemini",
-          pitch: "AI did not return any text. Check API key or quota.",
-          audience: "Developers",
-          landingCopy: "Error: Empty response",
-        });
-      }
-
-      // 👇  add these 2 lines
-      console.log("🔍 Gemini Raw Response ↓↓↓");
-      console.dir(result, { depth: null });
-      console.log("────────────────────────────");
-
-      const text = result.candidates[0].content.parts[0].text?.trim() || "";
+      const text =
+        result?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
 
       if (!text) {
         return res.status(200).json({
           name: "PitchCraft",
-          tagline: "Empty Response",
-          pitch: "Gemini returned no text output.",
-          audience: "Students",
-          landingCopy: "Try again or check API key.",
+          tagline: "No content",
+          pitch: "Gemini returned empty content. Check your key/quota.",
+          audience: "Everyone",
+          landingCopy: "Try again",
         });
       }
 
       try {
         const parsed = JSON.parse(text);
         return res.status(200).json(parsed);
-      } catch (e) {
-        console.error("Failed to parse AI output:", text);
+      } catch (err) {
+        // If output isn't JSON, return the text in the pitch field
+        console.warn("Could not parse JSON from Gemini. Returning text.", err);
         return res.status(200).json({
           name: "PitchCraft",
-          tagline: "Parse Error",
-          pitch: text || "No text returned",
-          audience: "Developers",
-          landingCopy: "Error parsing AI response",
+          tagline: "Generated text",
+          pitch: text,
+          audience: "General",
+          landingCopy: "",
         });
       }
     } catch (error) {
       console.error("❌ Gemini Error:", error);
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     }
   },
 };
