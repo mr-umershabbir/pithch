@@ -1,8 +1,3 @@
-const dotenv = require("dotenv");
-dotenv.config();
-
-const GEMINI_KEY = process.env.GEMINI_API_KEY;
-
 const fetch = require("node-fetch");
 
 module.exports = {
@@ -13,14 +8,7 @@ module.exports = {
 
     try {
       const { idea, tone } = req.body;
-      const GEMINI_KEY = process.env.GEMINI_API_KEY;
-
-      if (!GEMINI_KEY) {
-        console.error("❌ GEMINI_API_KEY not found in environment!");
-        return res
-          .status(500)
-          .json({ error: "Server missing Gemini API key." });
-      }
+      const GEMINI_KEY = "AIzaSyDs6KV8ESJnprc5FWVdQpugNZubiAIPx4Y";
 
       const prompt = `
       Tum ek AI ho jo startup pitches likhta hai.

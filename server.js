@@ -1,14 +1,9 @@
-const dotenv = require("dotenv");
-dotenv.config();
-
-const GEMINI_KEY = process.env.GEMINI_API_KEY;
-
 const express = require("express");
 const cors = require("cors");
 const handler = require("./api/generate.js");
 
 const app = express();
-const port = process.env.PORT || 5050;
+const port = 5050;
 
 app.use(cors());
 app.use(express.json());
